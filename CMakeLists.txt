@@ -284,6 +284,7 @@ add_executable(engine-sim-app WIN32
     src/cylinder_bank_object.cpp
     src/cylinder_head_object.cpp
     src/ui_button.cpp
+    src/platform_file_dialog.cpp
     src/ui_utilities.cpp
     src/combustion_chamber_object.cpp
     src/oscilloscope.cpp
@@ -319,6 +320,7 @@ add_executable(engine-sim-app WIN32
     include/cylinder_bank_object.h
     include/cylinder_head_object.h
     include/ui_button.h
+    include/platform_file_dialog.h
     include/ui_utilities.h
     include/combustion_chamber_object.h
     include/oscilloscope.h
@@ -337,6 +339,14 @@ add_executable(engine-sim-app WIN32
     include/mixer_cluster.h
     include/info_cluster.h
 )
+
+if (APPLE)
+    target_sources(engine-sim-app PRIVATE src/platform_file_dialog.mm)
+endif ()
+
+if (WIN32)
+    target_link_libraries(engine-sim-app comdlg32)
+endif ()
 
 target_link_libraries(engine-sim-app
     engine-sim
