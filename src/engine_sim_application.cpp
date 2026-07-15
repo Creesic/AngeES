@@ -1069,6 +1069,7 @@ void EngineSimApplication::renderScene() {
     else if (m_viewManager.getCurrentIndex() == 3) {
         // Console view: hide the simulation clusters; the delta-basic console
         // overlay (enabled above) is drawn by the engine.
+        m_engineView->setBounds(Bounds((float)screenWidth, (float)screenHeight, { 0, (float)screenHeight }));
         m_engineView->setVisible(false);
         m_rightGaugeCluster->setVisible(false);
         m_oscCluster->setVisible(false);
