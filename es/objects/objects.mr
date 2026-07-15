@@ -87,9 +87,14 @@ private node _engine => __engine_sim__engine {
     input throttle [throttle_channel];
 
     input simulation_frequency [float];
+    input max_sle_solver_steps [int];
+    input fluid_simulation_steps [int];
     input hf_gain [float];
+    input convolution [float];
     input jitter [float];
     input noise [float];
+    input heat_transfer_coefficient [float];
+    input block_temperature [float];
 
     alias output __out [engine_channel];
 }
@@ -111,9 +116,14 @@ public node engine {
         direct_throttle_linkage(gamma: throttle_gamma);
 
     input simulation_frequency: 10000;
+    input max_sle_solver_steps: 128;
+    input fluid_simulation_steps: 8;
     input hf_gain: 0.01;
+    input convolution: 1.0;
     input jitter: 0.5;
     input noise: 1.0;
+    input heat_transfer_coefficient: 100.0;
+    input block_temperature: 90 * units.C + units.K0;
 
     alias output __out [_engine]:
         _engine(
@@ -130,9 +140,14 @@ public node engine {
             throttle: throttle,
 
             simulation_frequency: simulation_frequency,
+            max_sle_solver_steps: max_sle_solver_steps,
+            fluid_simulation_steps: fluid_simulation_steps,
             hf_gain: hf_gain,
+            convolution: convolution,
             jitter: jitter,
-            noise: noise
+            noise: noise,
+            heat_transfer_coefficient: heat_transfer_coefficient,
+            block_temperature: block_temperature
         );
 }
 
@@ -614,4 +629,16 @@ public node vehicle => __engine_sim__vehicle {
 public node transmission => __engine_sim__transmission {
     input max_clutch_torque [float]: 1000 * units.lb_ft;
     alias output __out [transmission_channel];
+}
+
+public node default_transmission {
+    alias output __out: _transmission;
+
+    transmission _transmission()
+    _transmission
+        .add_gear(3.166)
+        .add_gear(1.882)
+        .add_gear(1.296)
+        .add_gear(0.972)
+        .add_gear(0.78)
 }

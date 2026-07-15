@@ -123,6 +123,8 @@ namespace es_script {
             ccParams.StartingPressure = units::pressure(1.0, units::atm);
             ccParams.StartingTemperature = units::celcius(25.0);
             ccParams.MeanPistonSpeedToTurbulence = meanPistonSpeedToTurbulence;
+            ccParams.BlockTemperature = m_parameters.initialBlockTemperature;
+            ccParams.HeatTransferCoefficient = m_parameters.initialHeatTransferCoefficient;
 
             for (int i = 0; i < engine->getCylinderCount(); ++i) {
                 ccParams.Piston = engine->getPiston(i);
@@ -164,6 +166,11 @@ namespace es_script {
             addInput("hf_gain", &m_parameters.initialHighFrequencyGain);
             addInput("jitter", &m_parameters.initialJitter);
             addInput("noise", &m_parameters.initialNoise);
+            addInput("max_sle_solver_steps", &m_parameters.initialMaxSleSolverSteps);
+            addInput("fluid_simulation_steps", &m_parameters.initialFluidSimulationSteps);
+            addInput("convolution", &m_parameters.initialConvolution);
+            addInput("heat_transfer_coefficient", &m_parameters.initialHeatTransferCoefficient);
+            addInput("block_temperature", &m_parameters.initialBlockTemperature);
 
             ObjectReferenceNode<EngineNode>::registerInputs();
         }

@@ -309,6 +309,7 @@ add_executable(engine-sim-test
     # Source files
     test/gas_system_tests.cpp
     test/function_test.cpp
+    test/simulator_settings_tests.cpp
     test/synthesizer_tests.cpp
 )
 
@@ -316,6 +317,14 @@ target_link_libraries(engine-sim-test
     gtest_main
     engine-sim
 )
+
+if (PIRANHA_ENABLED)
+    target_sources(engine-sim-test
+        PRIVATE test/script_compiler_tests.cpp)
+
+    target_link_libraries(engine-sim-test
+        engine-sim-script-interpreter)
+endif (PIRANHA_ENABLED)
 
 include(GoogleTest)
 gtest_discover_tests(engine-sim-test)

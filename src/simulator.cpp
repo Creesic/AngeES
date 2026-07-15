@@ -11,6 +11,7 @@ Simulator::Simulator() {
     m_simulationSpeed = 1.0;
     m_targetSynthesizerLatency = 0.1;
     m_simulationFrequency = 10000;
+    m_maxSleSolverSteps = 128;
     m_steps = 0;
 
     m_currentIteration = 0;
@@ -29,8 +30,10 @@ void Simulator::initialize(const Parameters &params) {
     if (params.systemType == SystemType::NsvOptimized) {
         atg_scs::OptimizedNsvRigidBodySystem *system =
             new atg_scs::OptimizedNsvRigidBodySystem;
-        system->initialize(
-            new atg_scs::GaussSeidelSleSolver);
+        atg_scs::GaussSeidelSleSolver *solver =
+            new atg_scs::GaussSeidelSleSolver;
+        solver->m_maxIterations = m_maxSleSolverSteps;
+        system->initialize(solver);
         m_system = system;
     }
     else {

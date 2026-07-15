@@ -57,6 +57,9 @@ public:
     void setSimulationFrequency(int frequency) { m_simulationFrequency = frequency; }
     int getSimulationFrequency() const { return m_simulationFrequency; }
 
+    void setMaxSleSolverSteps(int steps) { m_maxSleSolverSteps = steps; }
+    int getMaxSleSolverSteps() const { return m_maxSleSolverSteps; }
+
     double getTimestep() const { return 1.0 / m_simulationFrequency; }
 
     void setTargetSynthesizerLatency(double latency) { m_targetSynthesizerLatency = latency; }
@@ -107,6 +110,7 @@ private:
     double m_physicsProcessingTime;
 
     int m_simulationFrequency;
+    int m_maxSleSolverSteps;
 
     double m_targetSynthesizerLatency;
     double m_simulationSpeed;

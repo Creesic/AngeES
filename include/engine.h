@@ -44,6 +44,11 @@ class Engine : public Part {
             double initialHighFrequencyGain;
             double initialNoise;
             double initialJitter;
+            int initialMaxSleSolverSteps = 128;
+            int initialFluidSimulationSteps = 8;
+            double initialConvolution = 1.0;
+            double initialHeatTransferCoefficient = 100.0;
+            double initialBlockTemperature = units::celcius(90.0);
         };
 
     public:
@@ -106,6 +111,11 @@ class Engine : public Part {
         double getInitialHighFrequencyGain() const { return m_initialHighFrequencyGain; }
         double getInitialNoise() const { return m_initialNoise; }
         double getInitialJitter() const { return m_initialJitter; }
+        int getInitialMaxSleSolverSteps() const { return m_initialMaxSleSolverSteps; }
+        int getInitialFluidSimulationSteps() const { return m_initialFluidSimulationSteps; }
+        double getInitialConvolution() const { return m_initialConvolution; }
+        double getInitialHeatTransferCoefficient() const { return m_initialHeatTransferCoefficient; }
+        double getInitialBlockTemperature() const { return m_initialBlockTemperature; }
 
         virtual Simulator *createSimulator(Vehicle *vehicle, Transmission *transmission);
 
@@ -135,6 +145,11 @@ class Engine : public Part {
         double m_initialHighFrequencyGain;
         double m_initialNoise;
         double m_initialJitter;
+        int m_initialMaxSleSolverSteps;
+        int m_initialFluidSimulationSteps;
+        double m_initialConvolution;
+        double m_initialHeatTransferCoefficient;
+        double m_initialBlockTemperature;
 
         ExhaustSystem *m_exhaustSystems;
         int m_exhaustSystemCount;
