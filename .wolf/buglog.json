@@ -1,0 +1,37 @@
+{
+  "version": 1,
+  "bugs": [
+    {
+      "id": "bug-001",
+      "timestamp": "2026-07-15T22:14:03.058Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/engine_sim_application.cpp",
+      "root_cause": "3 lines replaced/restructured",
+      "fix": "Rewrote 6→16 lines (3 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "cpp"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-15T22:14:03.058Z"
+    },
+    {
+      "id": "bug-002",
+      "timestamp": "2026-07-15T22:14:04.371Z",
+      "error_message": "Incorrect value in code",
+      "file": "src/ui_console.cpp",
+      "root_cause": "Had \"CONSOLE\"",
+      "fix": "Changed to \"CONSOLE  (F5 to close)\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "cpp"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-15T22:14:04.371Z"
+    }
+  ]
+}
