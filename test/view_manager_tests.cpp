@@ -40,3 +40,24 @@ TEST(ViewManagerTests, SelectByShortcutMatchesRegisteredKey) {
     EXPECT_FALSE(vm.selectByShortcut(999));
     EXPECT_EQ(vm.getCurrentIndex(), 1);
 }
+
+TEST(ViewManagerTests, SelectChangesCurrentIndexWhenValidAndIgnoresOutOfRange) {
+    ViewManager vm;
+    vm.addView("A", "", 0);
+    vm.addView("B", "", 0);
+
+    vm.select(1);
+    EXPECT_EQ(vm.getCurrentIndex(), 1);
+
+    vm.select(-1);
+    EXPECT_EQ(vm.getCurrentIndex(), 1);   // out of range: unchanged
+
+    vm.select(5);
+    EXPECT_EQ(vm.getCurrentIndex(), 1);   // >= count: unchanged
+}
+
+TEST(ViewManagerTests, CycleNextOnEmptyIsSafe) {
+    ViewManager vm;
+    vm.cycleNext();                        // no views: must not crash / divide-by-zero
+    EXPECT_EQ(vm.getCurrentIndex(), 0);
+}
