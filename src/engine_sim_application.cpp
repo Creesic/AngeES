@@ -979,6 +979,9 @@ void EngineSimApplication::renderScene() {
 
     m_shaders.CalculateUiCamera(screenWidth, screenHeight);
 
+    m_toolbar->m_bounds = Bounds((float)screenWidth, 40.0f, { 0.0f, (float)screenHeight }, Bounds::tl);
+    m_toolbar->setVisible(true);
+
     if (m_screen == 0) {
         Bounds windowBounds((float)screenWidth, (float)screenHeight, { 0, (float)screenHeight });
         Grid grid;
@@ -1098,6 +1101,7 @@ void EngineSimApplication::refreshUserInterface() {
     m_loadSimulationCluster = m_uiManager.getRoot()->addElement<LoadSimulationCluster>();
     m_mixerCluster = m_uiManager.getRoot()->addElement<MixerCluster>();
     m_infoCluster = m_uiManager.getRoot()->addElement<InfoCluster>();
+    m_toolbar = m_uiManager.getRoot()->addElement<UiToolbar>();
 
     m_infoCluster->setEngine(m_iceEngine);
     m_rightGaugeCluster->m_simulator = m_simulator;

@@ -20,6 +20,7 @@
 #include "load_simulation_cluster.h"
 #include "mixer_cluster.h"
 #include "info_cluster.h"
+#include "ui_toolbar.h"
 #include "application_settings.h"
 #include "transmission.h"
 
@@ -150,6 +151,7 @@ class EngineSimApplication {
         LoadSimulationCluster *m_loadSimulationCluster;
         MixerCluster *m_mixerCluster;
         InfoCluster *m_infoCluster;
+        UiToolbar *m_toolbar;
         SimulationObject::ViewParameters m_viewParameters;
 
         bool m_paused;

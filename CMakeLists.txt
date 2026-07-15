@@ -284,6 +284,7 @@ add_executable(engine-sim-app WIN32
     src/cylinder_bank_object.cpp
     src/cylinder_head_object.cpp
     src/ui_button.cpp
+    src/ui_toolbar.cpp
     src/platform_file_dialog.cpp
     src/ui_utilities.cpp
     src/combustion_chamber_object.cpp
@@ -320,6 +321,7 @@ add_executable(engine-sim-app WIN32
     include/cylinder_bank_object.h
     include/cylinder_head_object.h
     include/ui_button.h
+    include/ui_toolbar.h
     include/platform_file_dialog.h
     include/ui_utilities.h
     include/combustion_chamber_object.h
