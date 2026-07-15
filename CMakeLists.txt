@@ -285,6 +285,7 @@ add_executable(engine-sim-app WIN32
     src/cylinder_head_object.cpp
     src/ui_button.cpp
     src/ui_toolbar.cpp
+    src/view_manager.cpp
     src/platform_file_dialog.cpp
     src/ui_utilities.cpp
     src/combustion_chamber_object.cpp
@@ -322,6 +323,7 @@ add_executable(engine-sim-app WIN32
     include/cylinder_head_object.h
     include/ui_button.h
     include/ui_toolbar.h
+    include/view_manager.h
     include/platform_file_dialog.h
     include/ui_utilities.h
     include/combustion_chamber_object.h
@@ -383,10 +385,12 @@ enable_testing()
 
 add_executable(engine-sim-test
     # Source files
+    src/view_manager.cpp
     test/gas_system_tests.cpp
     test/function_test.cpp
     test/simulator_settings_tests.cpp
     test/synthesizer_tests.cpp
+    test/view_manager_tests.cpp
 )
 
 target_link_libraries(engine-sim-test
