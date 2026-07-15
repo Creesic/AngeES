@@ -32,6 +32,102 @@
       "related_bugs": [],
       "occurrences": 1,
       "last_seen": "2026-07-15T22:14:04.371Z"
+    },
+    {
+      "id": "bug-003",
+      "timestamp": "2026-07-15T22:28:20.157Z",
+      "error_message": "Wrong condition in logic",
+      "file": "src/engine_sim_application.cpp",
+      "root_cause": "Condition was: if (m_engine.IsKeyDown(ysKey::Code::F1)",
+      "fix": "Changed to: if (m_engine.IsKeyDown(ysKey::Code::F4)",
+      "tags": [
+        "auto-detected",
+        "logic-fix",
+        "cpp"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-15T22:28:20.157Z"
+    },
+    {
+      "id": "bug-004",
+      "timestamp": "2026-07-15T22:52:33.822Z",
+      "error_message": "Wrong reference: k_carb should be k_32inH2O",
+      "file": "include/gas_system.h",
+      "root_cause": "Used \"k_carb\" instead of \"k_32inH2O\"",
+      "fix": "Changed k_carb → k_32inH2O",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "h"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-15T22:52:33.822Z"
+    },
+    {
+      "id": "bug-005",
+      "timestamp": "2026-07-15T22:52:44.838Z",
+      "error_message": "Incorrect value in code",
+      "file": "scripting/src/language_rules.cpp",
+      "root_cause": "Had \"__engine_sim__k_carb\"",
+      "fix": "Changed to \"__engine_sim__k_32inH2O\"",
+      "tags": [
+        "auto-detected",
+        "wrong-value",
+        "cpp"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-15T22:52:44.838Z"
+    },
+    {
+      "id": "bug-006",
+      "timestamp": "2026-07-15T23:17:30.555Z",
+      "error_message": "Significant refactor of ",
+      "file": "src/transmission.cpp",
+      "root_cause": "6 lines replaced/restructured",
+      "fix": "Rewrote 25→67 lines (6 removed)",
+      "tags": [
+        "auto-detected",
+        "refactor",
+        "cpp"
+      ],
+      "related_bugs": [],
+      "occurrences": 1,
+      "last_seen": "2026-07-15T23:17:30.555Z"
+    },
+    {
+      "id": "bug-007",
+      "timestamp": "2026-07-15T23:18:10.665Z",
+      "error_message": "Wrong reference: dynamometer should be driveline_flex",
+      "file": "CMakeLists.txt",
+      "root_cause": "Used \"dynamometer\" instead of \"driveline_flex\"",
+      "fix": "Changed dynamometer → driveline_flex",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "txt"
+      ],
+      "related_bugs": [],
+      "occurrences": 2,
+      "last_seen": "2026-07-15T23:18:22.636Z"
+    },
+    {
+      "id": "bug-008",
+      "timestamp": "2026-07-15T23:33:11.941Z",
+      "error_message": "Wrong reference: ui_controls should be platform_file_dialog",
+      "file": "CMakeLists.txt",
+      "root_cause": "Used \"ui_controls\" instead of \"platform_file_dialog\"",
+      "fix": "Changed ui_controls → platform_file_dialog",
+      "tags": [
+        "auto-detected",
+        "wrong-reference",
+        "txt"
+      ],
+      "related_bugs": [],
+      "occurrences": 4,
+      "last_seen": "2026-07-15T23:33:36.945Z"
     }
   ]
 }

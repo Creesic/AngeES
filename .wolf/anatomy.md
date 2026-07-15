@@ -1,14 +1,14 @@
 # anatomy.md
 
-> Auto-maintained by OpenWolf. Last scanned: 2026-07-15T22:14:04.361Z
-> Files: 506 tracked | Anatomy hits: 0 | Misses: 0
+> Auto-maintained by OpenWolf. Last scanned: 2026-07-15T23:33:36.936Z
+> Files: 528 tracked | Anatomy hits: 0 | Misses: 0
 
 ## ./
 
 - `.gitignore` — Git ignore rules (~60 tok)
 - `.gitmodules` (~223 tok)
 - `CLAUDE.md` — OpenWolf (~57 tok)
-- `CMakeLists.txt` — CMake build configuration (~3337 tok)
+- `CMakeLists.txt` (~3373 tok)
 - `LICENSE` — Project license (~286 tok)
 - `README.md` — Project documentation (~3291 tok)
 
@@ -45,6 +45,7 @@
 
 - `assets.ysce` (~140310 tok)
 - `main.mr` (~36 tok)
+- `test_flex_engine.mr` — Regression fixture: exercises the 1.14 vehicle/transmission "flex" + brake (~367 tok)
 
 ## assets/engines/atg-video-1/
 
@@ -735,7 +736,46 @@
 - `yds_allocator.h` — ifndef YDS_ALLOCATOR_H (~547 tok)
 - `yds_animation_action_binding.h` — ifndef YDS_ANIMATION_ACTION_BINDING_H (~226 tok)
 
+## es/actions/
+
+- `actions.mr` — Declares generated_function (~1567 tok)
+
+## es/objects/
+
+- `objects.mr` (~6077 tok)
+
+## include/
+
+- `driveline_flex.h` — ifndef ATG_ENGINE_SIM_DRIVELINE_FLEX_H (~438 tok)
+- `engine_sim_application.h` — ifndef ATG_ENGINE_SIM_ENGINE_SIM_APPLICATION_H (~1993 tok)
+- `gas_system.h` — ifndef ATG_ENGINE_SIM_GAS_SYSTEM_H (~2641 tok)
+- `transmission.h` — ifndef ATG_ENGINE_SIM_TRANSMISSION_H (~477 tok)
+- `ui_controls.h` — ifndef ATG_ENGINE_SIM_UI_CONTROLS_H (~110 tok)
+- `ui_toolbar.h` — ifndef ATG_ENGINE_SIM_UI_TOOLBAR_H (~218 tok)
+- `vehicle.h` — ifndef ATG_ENGINE_SIM_VEHICLE_H (~669 tok)
+
+## scripting/include/
+
+- `actions.h` — ifndef ATG_ENGINE_SIM_ACTIONS_H (~5023 tok)
+- `transmission_node.h` — ifndef ATG_ENGINE_SIM_TRANSMISSION_NODE_H (~449 tok)
+- `vehicle_node.h` — ifndef ATG_ENGINE_SIM_VEHICLE_NODE_H (~442 tok)
+
+## scripting/src/
+
+- `language_rules.cpp` — include "../include/language_rules.h" (~3810 tok)
+
 ## src/
 
-- `engine_sim_application.cpp` — include "../include/engine_sim_application.h" (~12024 tok)
+- `driveline_flex.cpp` — include "../include/driveline_flex.h" (~480 tok)
+- `engine_sim_application.cpp` — include "../include/engine_sim_application.h" (~12251 tok)
+- `gas_system.cpp` — include "../include/gas_system.h" (~5363 tok)
+- `transmission.cpp` — include "../include/transmission.h" (~1162 tok)
 - `ui_console.cpp` — include "../include/ui_console.h" (~218 tok)
+- `ui_controls.cpp` — include "../include/ui_controls.h" (~938 tok)
+- `ui_toolbar.cpp` — include "../include/ui_toolbar.h" (~775 tok)
+- `vehicle.cpp` — include "../include/vehicle.h" (~466 tok)
+
+## test/
+
+- `driveline_flex_tests.cpp` — include "../include/driveline_flex.h" (~732 tok)
+- `script_compiler_tests.cpp` — include "../scripting/include/compiler.h" (~296 tok)
