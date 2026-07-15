@@ -16,6 +16,7 @@ class UiToolbar : public UiElement {
         virtual void signal(UiElement *element, Event event);
 
         UiButton *getConsoleButton() { return m_consoleButton; }
+        UiButton *getControlsButton() { return m_controlsButton; }
 
     protected:
         UiButton *m_loadEngineButton;
@@ -23,6 +24,7 @@ class UiToolbar : public UiElement {
         UiButton *m_loadThemeButton;
         UiButton *m_exitButton;
         UiButton *m_consoleButton;
+        UiButton *m_controlsButton;
 };
 
 #endif /* ATG_ENGINE_SIM_UI_TOOLBAR_H */

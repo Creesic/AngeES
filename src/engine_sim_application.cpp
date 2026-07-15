@@ -249,7 +249,7 @@ void EngineSimApplication::process(float frame_dt) {
         speed = 1 / 1000.0;
     }
 
-    if (m_engine.IsKeyDown(ysKey::Code::F1)) {
+    if (m_engine.IsKeyDown(ysKey::Code::F4)) {
         m_displayAngle += frame_dt * 1.0f;
     }
     else if (m_engine.IsKeyDown(ysKey::Code::F2)) {
@@ -403,6 +403,10 @@ void EngineSimApplication::run() {
 
         if (m_engine.ProcessKeyDown(ysKey::Code::F5)) {
             toggleConsole();
+        }
+
+        if (m_engine.ProcessKeyDown(ysKey::Code::F1)) {
+            toggleControls();
         }
 
         if (m_engine.ProcessKeyDown(ysKey::Code::F)) {
@@ -1010,6 +1014,13 @@ void EngineSimApplication::renderScene() {
         Bounds::center);
     m_console->setVisible(m_consoleOpen);
 
+    // Controls: a help overlay (F1 / Controls button) listing all keybindings.
+    m_controls->m_bounds = Bounds(
+        (float)screenWidth * 0.7f, (float)screenHeight * 0.85f,
+        { (float)screenWidth * 0.5f, (float)screenHeight * 0.5f },
+        Bounds::center);
+    m_controls->setVisible(m_controlsOpen);
+
     Bounds windowBounds((float)screenWidth, (float)screenHeight, { 0, (float)screenHeight });
 
     if (m_viewManager.getCurrentIndex() == 0) {
@@ -1059,6 +1070,12 @@ void EngineSimApplication::renderScene() {
                 { m_engineView->m_bounds.right() - 15.0f, m_engineView->m_bounds.top() - 45.0f },
                 Bounds::tr);
         m_toolbar->getConsoleButton()->setVisible(true);
+
+        m_toolbar->getControlsButton()->m_bounds =
+            Bounds(180.0f, 28.0f,
+                { m_engineView->m_bounds.right() - 205.0f, m_engineView->m_bounds.top() - 45.0f },
+                Bounds::tr);
+        m_toolbar->getControlsButton()->setVisible(true);
     }
     else if (m_viewManager.getCurrentIndex() == 1) {
         // Engine: fullscreen engine view only.
@@ -1105,7 +1122,7 @@ void EngineSimApplication::renderScene() {
     // clusters and the toolbar entirely while the console is open (the view
     // blocks above still ran, so m_engineView->m_bounds stays valid for the
     // camera below). Bring the console to the front.
-    if (m_consoleOpen) {
+    if (m_consoleOpen || m_controlsOpen) {
         m_engineView->setVisible(false);
         m_rightGaugeCluster->setVisible(false);
         m_oscCluster->setVisible(false);
@@ -1114,8 +1131,9 @@ void EngineSimApplication::renderScene() {
         m_mixerCluster->setVisible(false);
         m_infoCluster->setVisible(false);
         m_toolbar->setVisible(false);
-        m_console->activate();
     }
+    if (m_consoleOpen) m_console->activate();
+    if (m_controlsOpen) m_controls->activate();
 
     const float cameraAspectRatio =
         m_engineView->m_bounds.width() / m_engineView->m_bounds.height();
@@ -1169,6 +1187,7 @@ void EngineSimApplication::refreshUserInterface() {
     m_infoCluster = m_uiManager.getRoot()->addElement<InfoCluster>();
     m_toolbar = m_uiManager.getRoot()->addElement<UiToolbar>();
     m_console = m_uiManager.getRoot()->addElement<UiConsole>();
+    m_controls = m_uiManager.getRoot()->addElement<UiControls>();
 
     m_infoCluster->setEngine(m_iceEngine);
     m_rightGaugeCluster->m_simulator = m_simulator;

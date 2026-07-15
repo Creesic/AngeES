@@ -22,6 +22,7 @@
 #include "info_cluster.h"
 #include "ui_toolbar.h"
 #include "ui_console.h"
+#include "ui_controls.h"
 #include "ui_tab_bar.h"
 #include "view_manager.h"
 #include "application_settings.h"
@@ -95,7 +96,8 @@ class EngineSimApplication {
         InfoCluster *getInfoCluster() { return m_infoCluster; }
         ApplicationSettings* getAppSettings() { return &m_applicationSettings; }
         ViewManager *getViewManager() { return &m_viewManager; }
-        void toggleConsole() { m_consoleOpen = !m_consoleOpen; }
+        void toggleConsole() { m_consoleOpen = !m_consoleOpen; if (m_consoleOpen) m_controlsOpen = false; }
+        void toggleControls() { m_controlsOpen = !m_controlsOpen; if (m_controlsOpen) m_consoleOpen = false; }
         const std::vector<std::string> &getConsoleLog() const { return m_consoleLog; }
 
     protected:
@@ -159,6 +161,7 @@ class EngineSimApplication {
         InfoCluster *m_infoCluster;
         UiToolbar *m_toolbar;
         UiConsole *m_console;
+        UiControls *m_controls;
         UiTabBar *m_tabBar;
         SimulationObject::ViewParameters m_viewParameters;
 
@@ -169,6 +172,7 @@ class EngineSimApplication {
         bool m_reloadRequested = false;
         bool m_running = true;
         bool m_consoleOpen = false;
+        bool m_controlsOpen = false;
         std::vector<std::string> m_consoleLog;
 
     protected:

@@ -290,6 +290,7 @@ add_executable(engine-sim-app WIN32
     src/view_manager.cpp
     src/ui_tab_bar.cpp
     src/ui_console.cpp
+    src/ui_controls.cpp
     src/platform_file_dialog.cpp
     src/ui_utilities.cpp
     src/combustion_chamber_object.cpp
@@ -330,6 +331,7 @@ add_executable(engine-sim-app WIN32
     include/view_manager.h
     include/ui_tab_bar.h
     include/ui_console.h
+    include/ui_controls.h
     include/platform_file_dialog.h
     include/ui_utilities.h
     include/combustion_chamber_object.h

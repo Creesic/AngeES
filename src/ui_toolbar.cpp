@@ -10,6 +10,7 @@ UiToolbar::UiToolbar() {
     m_loadThemeButton = nullptr;
     m_exitButton = nullptr;
     m_consoleButton = nullptr;
+    m_controlsButton = nullptr;
 }
 
 UiToolbar::~UiToolbar() {
@@ -40,6 +41,10 @@ void UiToolbar::initialize(EngineSimApplication *app) {
     m_consoleButton = addElement<UiButton>(this);
     m_consoleButton->m_text = "Console [F5]";
     m_consoleButton->m_fontSize = 16.0f;
+
+    m_controlsButton = addElement<UiButton>(this);
+    m_controlsButton->m_text = "Controls [F1]";
+    m_controlsButton->m_fontSize = 16.0f;
 }
 
 void UiToolbar::update(float dt) {
@@ -80,6 +85,9 @@ void UiToolbar::signal(UiElement *element, Event event) {
     }
     else if (element == m_consoleButton) {
         m_app->toggleConsole();
+    }
+    else if (element == m_controlsButton) {
+        m_app->toggleControls();
     }
     // m_loadThemeButton: intentionally inert (stub, per spec).
 }
