@@ -93,7 +93,6 @@ EngineSimApplication::EngineSimApplication() {
     m_gameWindowHeight = 256;
     m_screenWidth = 256;
     m_screenHeight = 256;
-    m_screen = 0;
     m_viewParameters.Layer0 = 0;
     m_viewParameters.Layer1 = 0;
 
@@ -188,6 +187,13 @@ void EngineSimApplication::initialize() {
     m_textRenderer.SetEngine(&m_engine);
     m_textRenderer.SetRenderer(m_engine.GetUiRenderer());
     m_textRenderer.SetFont(m_engine.GetConsole()->GetFont());
+
+    if (m_viewManager.getViewCount() == 0) {
+        m_viewManager.addView("Dashboard", "", 0);
+        m_viewManager.addView("Engine", "", 0);
+        m_viewManager.addView("Split", "", 0);
+        m_viewManager.addView("Console", "F5", (int)ysKey::Code::F5);
+    }
 
     loadScript();
 
@@ -393,8 +399,11 @@ void EngineSimApplication::run() {
         }
 
         if (m_engine.ProcessKeyDown(ysKey::Code::Tab)) {
-            m_screen++;
-            if (m_screen > 2) m_screen = 0;
+            m_viewManager.cycleNext();
+        }
+
+        if (m_engine.ProcessKeyDown(ysKey::Code::F5)) {
+            m_viewManager.selectByShortcut((int)ysKey::Code::F5);
         }
 
         if (m_engine.ProcessKeyDown(ysKey::Code::F)) {
@@ -982,7 +991,11 @@ void EngineSimApplication::renderScene() {
     m_toolbar->m_bounds = Bounds((float)screenWidth, 40.0f, { 0.0f, (float)screenHeight }, Bounds::tl);
     m_toolbar->setVisible(true);
 
-    if (m_screen == 0) {
+    const bool consoleView =
+        (m_viewManager.getView(m_viewManager.getCurrentIndex()).name == "Console");
+    m_engine.SetConsoleEnabled(consoleView);
+
+    if (m_viewManager.getCurrentIndex() == 0) {
         Bounds windowBounds((float)screenWidth, (float)screenHeight, { 0, (float)screenHeight });
         Grid grid;
         grid.v_cells = 2;
@@ -1015,7 +1028,7 @@ void EngineSimApplication::renderScene() {
 
         m_oscCluster->activate();
     }
-    else if (m_screen == 1) {
+    else if (m_viewManager.getCurrentIndex() == 1) {
         Bounds windowBounds((float)screenWidth, (float)screenHeight, { 0, (float)screenHeight });
         m_engineView->setDrawFrame(false);
         m_engineView->setBounds(windowBounds);
@@ -1030,7 +1043,7 @@ void EngineSimApplication::renderScene() {
         m_mixerCluster->setVisible(false);
         m_infoCluster->setVisible(false);
     }
-    else if (m_screen == 2) {
+    else if (m_viewManager.getCurrentIndex() == 2) {
         Bounds windowBounds((float)screenWidth, (float)screenHeight, { 0, (float)screenHeight });
         Grid grid;
         grid.v_cells = 1;
@@ -1044,6 +1057,17 @@ void EngineSimApplication::renderScene() {
 
         m_engineView->setVisible(true);
         m_rightGaugeCluster->setVisible(true);
+        m_oscCluster->setVisible(false);
+        m_performanceCluster->setVisible(false);
+        m_loadSimulationCluster->setVisible(false);
+        m_mixerCluster->setVisible(false);
+        m_infoCluster->setVisible(false);
+    }
+    else if (m_viewManager.getCurrentIndex() == 3) {
+        // Console view: hide the simulation clusters; the delta-basic console
+        // overlay (enabled above) is drawn by the engine.
+        m_engineView->setVisible(false);
+        m_rightGaugeCluster->setVisible(false);
         m_oscCluster->setVisible(false);
         m_performanceCluster->setVisible(false);
         m_loadSimulationCluster->setVisible(false);

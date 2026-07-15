@@ -21,6 +21,7 @@
 #include "mixer_cluster.h"
 #include "info_cluster.h"
 #include "ui_toolbar.h"
+#include "view_manager.h"
 #include "application_settings.h"
 #include "transmission.h"
 
@@ -91,6 +92,7 @@ class EngineSimApplication {
         Simulator *getSimulator() { return m_simulator; }
         InfoCluster *getInfoCluster() { return m_infoCluster; }
         ApplicationSettings* getAppSettings() { return &m_applicationSettings; }
+        ViewManager *getViewManager() { return &m_viewManager; }
 
     protected:
         void loadScript(const std::string &path = "../assets/main.mr");
@@ -192,7 +194,7 @@ class EngineSimApplication {
         ysAudioSource *m_audioSource;
 
         int m_oscillatorSampleOffset;
-        int m_screen;
+        ViewManager m_viewManager;
 
 #ifdef ATG_ENGINE_SIM_VIDEO_CAPTURE
         atg_dtv::Encoder m_encoder;
