@@ -21,6 +21,7 @@
 #include "mixer_cluster.h"
 #include "info_cluster.h"
 #include "ui_toolbar.h"
+#include "ui_tab_bar.h"
 #include "view_manager.h"
 #include "application_settings.h"
 #include "transmission.h"
@@ -154,6 +155,7 @@ class EngineSimApplication {
         MixerCluster *m_mixerCluster;
         InfoCluster *m_infoCluster;
         UiToolbar *m_toolbar;
+        UiTabBar *m_tabBar;
         SimulationObject::ViewParameters m_viewParameters;
 
         bool m_paused;

@@ -991,6 +991,9 @@ void EngineSimApplication::renderScene() {
     m_toolbar->m_bounds = Bounds((float)screenWidth, 40.0f, { 0.0f, (float)screenHeight }, Bounds::tl);
     m_toolbar->setVisible(true);
 
+    m_tabBar->m_bounds = Bounds((float)screenWidth, 30.0f, { 0.0f, (float)screenHeight - 40.0f }, Bounds::tl);
+    m_tabBar->setVisible(true);
+
     const bool consoleView =
         (m_viewManager.getView(m_viewManager.getCurrentIndex()).name == "Console");
     m_engine.SetConsoleEnabled(consoleView);
@@ -1126,6 +1129,7 @@ void EngineSimApplication::refreshUserInterface() {
     m_mixerCluster = m_uiManager.getRoot()->addElement<MixerCluster>();
     m_infoCluster = m_uiManager.getRoot()->addElement<InfoCluster>();
     m_toolbar = m_uiManager.getRoot()->addElement<UiToolbar>();
+    m_tabBar = m_uiManager.getRoot()->addElement<UiTabBar>();
 
     m_infoCluster->setEngine(m_iceEngine);
     m_rightGaugeCluster->m_simulator = m_simulator;
