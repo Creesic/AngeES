@@ -33,6 +33,8 @@ CombustionChamber::CombustionChamber() {
     m_lastTimestepTotalExhaustFlow = 0;
     m_lastTimestepTotalIntakeFlow = 0;
     m_exhaustFlow = 0;
+    m_blockTemperature = units::celcius(90.0);
+    m_heatTransferCoefficient = 100.0;
     m_exhaustFlowRate = 0;
     m_intakeFlowRate = 0;
 
@@ -50,6 +52,8 @@ void CombustionChamber::initialize(const Parameters &params) {
     m_fuel = params.Fuel;
     m_crankcasePressure = params.CrankcasePressure;
     m_meanPistonSpeedToTurbulence = params.MeanPistonSpeedToTurbulence;
+    m_blockTemperature = params.BlockTemperature;
+    m_heatTransferCoefficient = params.HeatTransferCoefficient;
 
     m_pistonSpeed = new double[StateSamples];
     m_pressure = new double[StateSamples];
@@ -243,9 +247,9 @@ void CombustionChamber::flow(double dt) {
         cylinderHeight * constants::pi * m_head->getCylinderBank()->getBore()
         + m_cylinderCrossSectionSurfaceArea * 2;
 
-    const double dT = units::celcius(90.0) - m_system.temperature();
+    const double dT = m_blockTemperature - m_system.temperature();
 
-    m_system.changeEnergy(dT * cylinderSurfaceArea * 100 * dt);
+    m_system.changeEnergy(dT * cylinderSurfaceArea * m_heatTransferCoefficient * dt);
     m_system.flow(m_piston->getBlowbyK(), dt, m_crankcasePressure, units::celcius(25.0));
 
     Intake *intake = m_head->getIntake(m_piston->getCylinderIndex());
