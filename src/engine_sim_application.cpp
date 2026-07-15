@@ -16,9 +16,25 @@
 
 #include "../scripting/include/compiler.h"
 
+// PORT NOTE (M0 macOS bring-up): impulse response .wav loading below used
+// ysWindowsAudioWaveFile (Windows Multimedia I/O) unconditionally; use the
+// portable ysMacAudioWaveFile (plain RIFF/WAVE parsing over ISO C file I/O,
+// see yds_mac_audio_wave_file.cpp) on non-Windows platforms instead.
+#if defined(_WIN32)
+#include "../dependencies/submodules/delta-studio/include/yds_windows_audio_wave_file.h"
+#else
+#include "../dependencies/submodules/delta-studio/include/yds_mac_audio_wave_file.h"
+#endif
+
 #include <chrono>
 #include <stdlib.h>
 #include <sstream>
+
+#if defined(_WIN32)
+using PlatformAudioWaveFile = ysWindowsAudioWaveFile;
+#else
+using PlatformAudioWaveFile = ysMacAudioWaveFile;
+#endif
 
 #if ATG_ENGINE_SIM_DISCORD_ENABLED
 #include "../discord/Discord.h"
@@ -145,12 +161,21 @@ void EngineSimApplication::initialize(void *instance, ysContextObject::DeviceAPI
 
     m_assetManager.SetEngine(&m_engine);
 
+    // Per-frame UI geometry buffers. Enlarged from the original 100k vertex /
+    // 200k index sizes: on a Retina/HiDPI display the UI renders at 2x backing
+    // resolution, so radius-based tessellation (gauge arcs, circles, the
+    // engine cutaway) emits proportionally more triangles -- a full frame now
+    // uses ~195k indices before the oscilloscopes are even reached. At the old
+    // 200k index cap the scopes (drawn last) failed GeometryGenerator::
+    // startPath's capacity check and silently rendered nothing, leaving the
+    // exhaust-flow / waveform panels blank. These sizes leave comfortable
+    // headroom for the full dashboard at 2x.
     m_engine.GetDevice()->CreateIndexBuffer(
-        &m_geometryIndexBuffer, sizeof(unsigned short) * 200000, nullptr);
+        &m_geometryIndexBuffer, sizeof(unsigned short) * 500000, nullptr);
     m_engine.GetDevice()->CreateVertexBuffer(
-        &m_geometryVertexBuffer, sizeof(dbasic::Vertex) * 100000, nullptr);
+        &m_geometryVertexBuffer, sizeof(dbasic::Vertex) * 250000, nullptr);
 
-    m_geometryGenerator.initialize(100000, 200000);
+    m_geometryGenerator.initialize(250000, 500000);
 
     initialize();
 }
@@ -490,7 +515,7 @@ void EngineSimApplication::loadEngine(
     for (int i = 0; i < engine->getExhaustSystemCount(); ++i) {
         ImpulseResponse *response = engine->getExhaustSystem(i)->getImpulseResponse();
 
-        ysWindowsAudioWaveFile waveFile;
+        PlatformAudioWaveFile waveFile;
         waveFile.OpenFile(response->getFilename().c_str());
         waveFile.InitializeInternalBuffer(waveFile.GetSampleCount());
         waveFile.FillBuffer(0);
