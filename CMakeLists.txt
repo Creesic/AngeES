@@ -121,6 +121,7 @@ add_library(engine-sim STATIC
     src/delay_filter.cpp
     src/derivative_filter.cpp
     src/direct_throttle_linkage.cpp
+    src/driveline_flex.cpp
     src/dynamometer.cpp
     src/engine.cpp
     src/exhaust_system.cpp
@@ -165,6 +166,7 @@ add_library(engine-sim STATIC
     include/delay_filter.h
     include/derivative_filter.h
     include/direct_throttle_linkage.h
+    include/driveline_flex.h
     include/dynamometer.h
     include/engine.h
     include/exhaust_system.h
@@ -391,6 +393,7 @@ add_executable(engine-sim-test
     # Source files
     src/view_manager.cpp
     test/gas_system_tests.cpp
+    test/driveline_flex_tests.cpp
     test/function_test.cpp
     test/simulator_settings_tests.cpp
     test/synthesizer_tests.cpp

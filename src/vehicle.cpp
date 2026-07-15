@@ -11,6 +11,12 @@ Vehicle::Vehicle() {
     m_tireRadius = 0;
     m_travelledDistance = 0;
     m_rollingResistance = 0;
+    m_simulateFlex = false;
+    m_stiffness = 0;
+    m_damping = 0;
+    m_maxFlex = 0;
+    m_limitFlex = true;
+    m_maxBrakeForce = 0;
 }
 
 Vehicle::~Vehicle() {
@@ -24,6 +30,12 @@ void Vehicle::initialize(const Parameters &params) {
     m_diffRatio = params.diffRatio;
     m_tireRadius = params.tireRadius;
     m_rollingResistance = params.rollingResistance;
+    m_simulateFlex = params.simulateFlex;
+    m_stiffness = params.stiffness;
+    m_damping = params.damping;
+    m_maxFlex = params.maxFlex;
+    m_limitFlex = params.limitFlex;
+    m_maxBrakeForce = params.maxBrakeForce;
 }
 
 void Vehicle::update(double dt) {

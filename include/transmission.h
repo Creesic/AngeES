@@ -3,6 +3,7 @@
 
 #include "vehicle.h"
 #include "engine.h"
+#include "driveline_flex.h"
 #include "scs.h"
 
 class Transmission {
@@ -11,6 +12,13 @@ class Transmission {
             int GearCount;
             const double *GearRatios;
             double MaxClutchTorque;
+
+            // Clutch flex (1.14).
+            bool SimulateFlex = false;
+            double ClutchStiffness = 0.0;
+            double ClutchDamping = 0.0;
+            double MaxClutchFlex = 0.0;
+            bool LimitClutchFlex = true;
         };
 
     public:
@@ -31,6 +39,8 @@ class Transmission {
 
     protected:
         atg_scs::ClutchConstraint m_clutchConstraint;
+        DrivelineFlex m_flex;
+        bool m_flexActive;
         atg_scs::RigidBody *m_rotatingMass;
         Vehicle *m_vehicle;
 
@@ -40,6 +50,12 @@ class Transmission {
         double *m_gearRatios;
         double m_maxClutchTorque;
         double m_clutchPressure;
+
+        bool m_simulateFlex;
+        double m_clutchStiffness;
+        double m_clutchDamping;
+        double m_maxClutchFlex;
+        bool m_limitClutchFlex;
 };
 
 #endif /* ATG_ENGINE_SIM_TRANSMISSION_H */
