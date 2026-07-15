@@ -5,7 +5,6 @@
 #include <Windows.h>
 #include <commdlg.h>
 #include <cstdio>
-#include <cstring>
 
 std::string PlatformFileDialog::openFile(
         const char *title, const char *filterName, const char *filterPattern) {
@@ -13,8 +12,12 @@ std::string PlatformFileDialog::openFile(
     //   "<name>\0<pattern>\0\0". Build it with explicit embedded nulls.
     char filter[128];
     int n = 0;
-    n += std::snprintf(filter + n, sizeof(filter) - n, "%s", filterName) + 1;
-    n += std::snprintf(filter + n, sizeof(filter) - n, "%s", filterPattern) + 1;
+    int written = std::snprintf(filter + n, sizeof(filter) - n, "%s", filterName);
+    if (written < 0 || (size_t)(n + written + 1) >= sizeof(filter)) return std::string();
+    n += written + 1;
+    written = std::snprintf(filter + n, sizeof(filter) - n, "%s", filterPattern);
+    if (written < 0 || (size_t)(n + written + 1) >= sizeof(filter)) return std::string();
+    n += written + 1;
     filter[n] = '\0';
 
     char fileName[MAX_PATH] = "";
