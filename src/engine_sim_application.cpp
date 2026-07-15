@@ -370,20 +370,26 @@ float EngineSimApplication::unitsToPixels(float units) const {
 }
 
 void EngineSimApplication::run() {
-    while (true) {
+    while (m_running) {
         m_engine.StartFrame();
 
         if (!m_engine.IsOpen()) break;
+
+        if (m_reloadRequested) {
+            m_reloadRequested = false;
+            m_audioSource->SetMode(ysAudioSource::Mode::Stop);
+            loadScript(m_pendingScriptPath);
+            if (m_simulator->getEngine() != nullptr) {
+                m_audioSource->SetMode(ysAudioSource::Mode::Loop);
+            }
+        }
+
         if (m_engine.ProcessKeyDown(ysKey::Code::Escape)) {
             break;
         }
 
         if (m_engine.ProcessKeyDown(ysKey::Code::Return)) {
-            m_audioSource->SetMode(ysAudioSource::Mode::Stop);
-            loadScript();
-            if (m_simulator->getEngine() != nullptr) {
-                m_audioSource->SetMode(ysAudioSource::Mode::Loop);
-            }
+            requestEngineReload(m_scriptPath);
         }
 
         if (m_engine.ProcessKeyDown(ysKey::Code::Tab)) {
@@ -640,7 +646,7 @@ const SimulationObject::ViewParameters &
     return m_viewParameters;
 }
 
-void EngineSimApplication::loadScript() {
+void EngineSimApplication::loadScript(const std::string &path) {
     Engine *engine = nullptr;
     Vehicle *vehicle = nullptr;
     Transmission *transmission = nullptr;
@@ -648,7 +654,7 @@ void EngineSimApplication::loadScript() {
 #ifdef ATG_ENGINE_SIM_PIRANHA_ENABLED
     es_script::Compiler compiler;
     compiler.initialize();
-    const bool compiled = compiler.compile("../assets/main.mr");
+    const bool compiled = compiler.compile(path.c_str());
     if (compiled) {
         const es_script::Compiler::Output output = compiler.execute();
         configure(output.applicationSettings);
@@ -665,6 +671,8 @@ void EngineSimApplication::loadScript() {
 
     compiler.destroy();
 #endif /* ATG_ENGINE_SIM_PIRANHA_ENABLED */
+
+    m_scriptPath = path;
 
     if (vehicle == nullptr) {
         Vehicle::Parameters vehParams;
@@ -690,6 +698,11 @@ void EngineSimApplication::loadScript() {
 
     loadEngine(engine, vehicle, transmission);
     refreshUserInterface();
+}
+
+void EngineSimApplication::requestEngineReload(const std::string &path) {
+    m_pendingScriptPath = path;
+    m_reloadRequested = true;
 }
 
 void EngineSimApplication::processEngineInput() {

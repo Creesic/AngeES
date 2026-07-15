@@ -43,6 +43,9 @@ class EngineSimApplication {
         void destroy();
 
         void loadEngine(Engine *engine, Vehicle *vehicle, Transmission *transmission);
+        void requestEngineReload(const std::string &path);
+        const std::string &getScriptPath() const { return m_scriptPath; }
+        void quit() { m_running = false; }
         void drawGenerated(
                 const GeometryGenerator::GeometryIndices &indices,
                 int layer = 0);
@@ -89,7 +92,7 @@ class EngineSimApplication {
         ApplicationSettings* getAppSettings() { return &m_applicationSettings; }
 
     protected:
-        void loadScript();
+        void loadScript(const std::string &path = "../assets/main.mr");
         void processEngineInput();
         void renderScene();
 
@@ -150,6 +153,11 @@ class EngineSimApplication {
         SimulationObject::ViewParameters m_viewParameters;
 
         bool m_paused;
+
+        std::string m_scriptPath = "../assets/main.mr";
+        std::string m_pendingScriptPath;
+        bool m_reloadRequested = false;
+        bool m_running = true;
 
     protected:
         void startRecording();
