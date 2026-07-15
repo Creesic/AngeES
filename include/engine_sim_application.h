@@ -21,6 +21,7 @@
 #include "mixer_cluster.h"
 #include "info_cluster.h"
 #include "ui_toolbar.h"
+#include "ui_console.h"
 #include "ui_tab_bar.h"
 #include "view_manager.h"
 #include "application_settings.h"
@@ -94,6 +95,8 @@ class EngineSimApplication {
         InfoCluster *getInfoCluster() { return m_infoCluster; }
         ApplicationSettings* getAppSettings() { return &m_applicationSettings; }
         ViewManager *getViewManager() { return &m_viewManager; }
+        void toggleConsole() { m_consoleOpen = !m_consoleOpen; }
+        const std::vector<std::string> &getConsoleLog() const { return m_consoleLog; }
 
     protected:
         void loadScript(const std::string &path = "../assets/main.mr");
@@ -155,6 +158,7 @@ class EngineSimApplication {
         MixerCluster *m_mixerCluster;
         InfoCluster *m_infoCluster;
         UiToolbar *m_toolbar;
+        UiConsole *m_console;
         UiTabBar *m_tabBar;
         SimulationObject::ViewParameters m_viewParameters;
 
@@ -164,6 +168,8 @@ class EngineSimApplication {
         std::string m_pendingScriptPath;
         bool m_reloadRequested = false;
         bool m_running = true;
+        bool m_consoleOpen = false;
+        std::vector<std::string> m_consoleLog;
 
     protected:
         void startRecording();

@@ -192,7 +192,6 @@ void EngineSimApplication::initialize() {
         m_viewManager.addView("Dashboard", "", 0);
         m_viewManager.addView("Engine", "", 0);
         m_viewManager.addView("Split", "", 0);
-        m_viewManager.addView("Console", "F5", (int)ysKey::Code::F5);
     }
 
     loadScript();
@@ -403,7 +402,7 @@ void EngineSimApplication::run() {
         }
 
         if (m_engine.ProcessKeyDown(ysKey::Code::F5)) {
-            m_viewManager.selectByShortcut((int)ysKey::Code::F5);
+            toggleConsole();
         }
 
         if (m_engine.ProcessKeyDown(ysKey::Code::F)) {
@@ -505,14 +504,15 @@ void EngineSimApplication::loadEngine(
     m_vehicle = vehicle;
     m_transmission = transmission;
 
-    m_simulator = engine->createSimulator(vehicle, transmission);
-
     if (engine == nullptr || vehicle == nullptr || transmission == nullptr) {
         m_iceEngine = nullptr;
+        m_simulator = nullptr;
         m_viewParameters.Layer1 = 0;
 
         return;
     }
+
+    m_simulator = engine->createSimulator(vehicle, transmission);
 
     createObjects(engine);
 
@@ -664,22 +664,36 @@ void EngineSimApplication::loadScript(const std::string &path) {
     es_script::Compiler compiler;
     compiler.initialize();
     const bool compiled = compiler.compile(path.c_str());
+    m_consoleLog = compiler.getErrors();
     if (compiled) {
         const es_script::Compiler::Output output = compiler.execute();
-        configure(output.applicationSettings);
 
         engine = output.engine;
         vehicle = output.vehicle;
         transmission = output.transmission;
-    }
-    else {
-        engine = nullptr;
-        vehicle = nullptr;
-        transmission = nullptr;
+
+        if (engine != nullptr) {
+            configure(output.applicationSettings);
+        }
     }
 
     compiler.destroy();
 #endif /* ATG_ENGINE_SIM_PIRANHA_ENABLED */
+
+    if (m_consoleLog.empty()) {
+        m_consoleLog.push_back(path + ": compiled successfully.");
+    }
+
+    // If the script produced no engine (a raw engine definition with no
+    // main/set_engine, or a compile error), don't tear down the currently
+    // loaded engine -- report it and keep the app running.
+    if (engine == nullptr) {
+        if (m_infoCluster != nullptr) {
+            m_infoCluster->setLogMessage("Could not load an engine from that file.");
+        }
+
+        return;
+    }
 
     m_scriptPath = path;
 
@@ -988,18 +1002,18 @@ void EngineSimApplication::renderScene() {
 
     m_shaders.CalculateUiCamera(screenWidth, screenHeight);
 
-    m_toolbar->m_bounds = Bounds((float)screenWidth, 40.0f, { 0.0f, (float)screenHeight }, Bounds::tl);
-    m_toolbar->setVisible(true);
+    // Console: a compile-error log panel (matching 1.14a's ErrorLogDisplay),
+    // toggled by F5 / the Console button, overlaid centered on the current view.
+    m_console->m_bounds = Bounds(
+        (float)screenWidth * 0.6f, (float)screenHeight * 0.7f,
+        { (float)screenWidth * 0.5f, (float)screenHeight * 0.5f },
+        Bounds::center);
+    m_console->setVisible(m_consoleOpen);
 
-    m_tabBar->m_bounds = Bounds((float)screenWidth, 30.0f, { 0.0f, (float)screenHeight - 40.0f }, Bounds::tl);
-    m_tabBar->setVisible(true);
-
-    const bool consoleView =
-        (m_viewManager.getView(m_viewManager.getCurrentIndex()).name == "Console");
-    m_engine.SetConsoleEnabled(consoleView);
+    Bounds windowBounds((float)screenWidth, (float)screenHeight, { 0, (float)screenHeight });
 
     if (m_viewManager.getCurrentIndex() == 0) {
-        Bounds windowBounds((float)screenWidth, (float)screenHeight, { 0, (float)screenHeight });
+        // Dashboard: full layout with the info panel + toolbar.
         Grid grid;
         grid.v_cells = 2;
         grid.h_cells = 3;
@@ -1030,9 +1044,24 @@ void EngineSimApplication::renderScene() {
         m_infoCluster->setVisible(true);
 
         m_oscCluster->activate();
+
+        // Toolbar: compact 4-button row in the info panel's reserved band (row 2
+        // of the info cluster's 6x5 grid), matching 1.14a.
+        Grid infoGrid;
+        infoGrid.h_cells = 6;
+        infoGrid.v_cells = 5;
+        m_toolbar->m_bounds = infoGrid.get(m_infoCluster->m_bounds, 0, 2, 6, 1).inset(3.0f);
+        m_toolbar->setVisible(true);
+
+        // Single "Console [F5]" button in the engine-visualization header (top-right).
+        m_toolbar->getConsoleButton()->m_bounds =
+            Bounds(180.0f, 28.0f,
+                { m_engineView->m_bounds.right() - 15.0f, m_engineView->m_bounds.top() - 45.0f },
+                Bounds::tr);
+        m_toolbar->getConsoleButton()->setVisible(true);
     }
     else if (m_viewManager.getCurrentIndex() == 1) {
-        Bounds windowBounds((float)screenWidth, (float)screenHeight, { 0, (float)screenHeight });
+        // Engine: fullscreen engine view only.
         m_engineView->setDrawFrame(false);
         m_engineView->setBounds(windowBounds);
         m_engineView->setLocalPosition({ 0, 0 });
@@ -1045,9 +1074,11 @@ void EngineSimApplication::renderScene() {
         m_loadSimulationCluster->setVisible(false);
         m_mixerCluster->setVisible(false);
         m_infoCluster->setVisible(false);
+
+        m_toolbar->setVisible(false);
     }
-    else if (m_viewManager.getCurrentIndex() == 2) {
-        Bounds windowBounds((float)screenWidth, (float)screenHeight, { 0, (float)screenHeight });
+    else {
+        // Split: engine view plus the right gauge cluster.
         Grid grid;
         grid.v_cells = 1;
         grid.h_cells = 3;
@@ -1065,11 +1096,16 @@ void EngineSimApplication::renderScene() {
         m_loadSimulationCluster->setVisible(false);
         m_mixerCluster->setVisible(false);
         m_infoCluster->setVisible(false);
+
+        m_toolbar->setVisible(false);
     }
-    else if (m_viewManager.getCurrentIndex() == 3) {
-        // Console view: hide the simulation clusters; the delta-basic console
-        // overlay (enabled above) is drawn by the engine.
-        m_engineView->setBounds(Bounds((float)screenWidth, (float)screenHeight, { 0, (float)screenHeight }));
+
+    // Console mode: text is composited in a single global pass on top of all
+    // geometry, so an overlay can't cover the clusters' text -- hide the sim
+    // clusters and the toolbar entirely while the console is open (the view
+    // blocks above still ran, so m_engineView->m_bounds stays valid for the
+    // camera below). Bring the console to the front.
+    if (m_consoleOpen) {
         m_engineView->setVisible(false);
         m_rightGaugeCluster->setVisible(false);
         m_oscCluster->setVisible(false);
@@ -1077,6 +1113,8 @@ void EngineSimApplication::renderScene() {
         m_loadSimulationCluster->setVisible(false);
         m_mixerCluster->setVisible(false);
         m_infoCluster->setVisible(false);
+        m_toolbar->setVisible(false);
+        m_console->activate();
     }
 
     const float cameraAspectRatio =
@@ -1130,7 +1168,7 @@ void EngineSimApplication::refreshUserInterface() {
     m_mixerCluster = m_uiManager.getRoot()->addElement<MixerCluster>();
     m_infoCluster = m_uiManager.getRoot()->addElement<InfoCluster>();
     m_toolbar = m_uiManager.getRoot()->addElement<UiToolbar>();
-    m_tabBar = m_uiManager.getRoot()->addElement<UiTabBar>();
+    m_console = m_uiManager.getRoot()->addElement<UiConsole>();
 
     m_infoCluster->setEngine(m_iceEngine);
     m_rightGaugeCluster->m_simulator = m_simulator;

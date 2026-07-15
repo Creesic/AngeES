@@ -15,11 +15,14 @@ class UiToolbar : public UiElement {
         virtual void render();
         virtual void signal(UiElement *element, Event event);
 
+        UiButton *getConsoleButton() { return m_consoleButton; }
+
     protected:
         UiButton *m_loadEngineButton;
         UiButton *m_reloadButton;
         UiButton *m_loadThemeButton;
         UiButton *m_exitButton;
+        UiButton *m_consoleButton;
 };
 
 #endif /* ATG_ENGINE_SIM_UI_TOOLBAR_H */
