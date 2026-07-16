@@ -241,3 +241,15 @@ public node add_gear {
 public node set_transmission => __engine_sim__set_transmission {
     input transmission [transmission];
 }
+
+// 1.14 entry point: bundles set_engine/set_vehicle/set_transmission so an
+// engine file's `main` can `run(engine: ..., vehicle: ..., transmission: ...)`.
+public node run {
+    input engine;
+    input vehicle;
+    input transmission;
+
+    set_engine(engine)
+    set_vehicle(vehicle)
+    set_transmission(transmission)
+}

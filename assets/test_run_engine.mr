@@ -1,0 +1,32 @@
+// Regression fixture: exercises the 1.14 `run(...)` entry-point node backported
+// to this build (bundles set_engine/set_vehicle/set_transmission).
+
+import "engine_sim.mr"
+import "engines/atg-video-1/02_kohler_ch750.mr"
+
+units units()
+
+private node run_vehicle {
+    alias output __out:
+        vehicle(
+            mass: 563 * units.lb,
+            tire_radius: 8.5 * units.inch
+        );
+}
+
+private node run_transmission {
+    alias output __out: transmission;
+
+    transmission transmission(max_clutch_torque: 35 * units.lb_ft)
+    transmission.add_gear(1.0)
+}
+
+public node main {
+    run(
+        engine: kohler_ch750(),
+        vehicle: run_vehicle(),
+        transmission: run_transmission()
+    )
+}
+
+main()
