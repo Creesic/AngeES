@@ -49,6 +49,7 @@ class EngineSimApplication {
 
         void loadEngine(Engine *engine, Vehicle *vehicle, Transmission *transmission);
         void requestEngineReload(const std::string &path);
+        void promptLoadEngine();
         const std::string &getScriptPath() const { return m_scriptPath; }
         void quit() { m_running = false; }
         void drawGenerated(

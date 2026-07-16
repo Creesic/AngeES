@@ -2,7 +2,6 @@
 
 #include "../include/ui_button.h"
 #include "../include/engine_sim_application.h"
-#include "../include/platform_file_dialog.h"
 
 UiToolbar::UiToolbar() {
     m_loadEngineButton = nullptr;
@@ -71,11 +70,7 @@ void UiToolbar::signal(UiElement *element, Event event) {
     if (event != Event::Clicked) return;
 
     if (element == m_loadEngineButton) {
-        const std::string path = PlatformFileDialog::openFile(
-            "Load Engine", "Engine scripts (*.mr)", "*.mr");
-        if (!path.empty()) {
-            m_app->requestEngineReload(path);
-        }
+        m_app->promptLoadEngine();
     }
     else if (element == m_reloadButton) {
         m_app->requestEngineReload(m_app->getScriptPath());

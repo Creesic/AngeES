@@ -13,6 +13,7 @@
 #include "../include/exhaust_system.h"
 #include "../include/feedback_comb_filter.h"
 #include "../include/utilities.h"
+#include "../include/platform_file_dialog.h"
 
 #include "../scripting/include/compiler.h"
 
@@ -746,6 +747,25 @@ void EngineSimApplication::loadScript(const std::string &path) {
 void EngineSimApplication::requestEngineReload(const std::string &path) {
     m_pendingScriptPath = path;
     m_reloadRequested = true;
+}
+
+void EngineSimApplication::promptLoadEngine() {
+    // Mute playback while the modal file dialog blocks the main loop: otherwise
+    // the OS audio device keeps looping the last second still buffered in
+    // m_outputAudioBuffer for as long as the dialog is open.
+    m_audioSource->SetMode(ysAudioSource::Mode::Stop);
+
+    const std::string path = PlatformFileDialog::openFile(
+        "Load Engine", "Engine scripts (*.mr)", "*.mr");
+
+    if (!path.empty()) {
+        // The deferred reload re-enables Loop once the new engine is loaded.
+        requestEngineReload(path);
+    }
+    else if (m_simulator != nullptr && m_simulator->getEngine() != nullptr) {
+        // Cancelled: resume playback of the current engine.
+        m_audioSource->SetMode(ysAudioSource::Mode::Loop);
+    }
 }
 
 void EngineSimApplication::processEngineInput() {
