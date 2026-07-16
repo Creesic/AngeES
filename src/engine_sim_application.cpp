@@ -664,6 +664,16 @@ void EngineSimApplication::loadScript(const std::string &path) {
     Vehicle *vehicle = nullptr;
     Transmission *transmission = nullptr;
 
+    // Stop the currently-loaded engine's audio rendering thread before building
+    // the next engine. Script execution and engine-object allocation must not
+    // run concurrently with the render thread -- otherwise the two race on the
+    // heap and the app intermittently freezes when swapping engines. The old
+    // simulation is fully torn down later in loadEngine(); if this load fails
+    // (bad file), we restart the thread below to keep the current engine alive.
+    if (m_simulator != nullptr) {
+        m_simulator->endAudioRenderingThread();
+    }
+
 #ifdef ATG_ENGINE_SIM_PIRANHA_ENABLED
     es_script::Compiler compiler;
     compiler.initialize();
@@ -692,6 +702,12 @@ void EngineSimApplication::loadScript(const std::string &path) {
     // main/set_engine, or a compile error), don't tear down the currently
     // loaded engine -- report it and keep the app running.
     if (engine == nullptr) {
+        // Restart the audio thread we stopped above so the kept engine still
+        // makes sound.
+        if (m_simulator != nullptr) {
+            m_simulator->startAudioRenderingThread();
+        }
+
         if (m_infoCluster != nullptr) {
             m_infoCluster->setLogMessage("Could not load an engine from that file.");
         }
