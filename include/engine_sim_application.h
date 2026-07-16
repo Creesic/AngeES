@@ -20,6 +20,11 @@
 #include "load_simulation_cluster.h"
 #include "mixer_cluster.h"
 #include "info_cluster.h"
+#include "ui_toolbar.h"
+#include "ui_console.h"
+#include "ui_controls.h"
+#include "ui_tab_bar.h"
+#include "view_manager.h"
 #include "application_settings.h"
 #include "transmission.h"
 
@@ -43,6 +48,10 @@ class EngineSimApplication {
         void destroy();
 
         void loadEngine(Engine *engine, Vehicle *vehicle, Transmission *transmission);
+        void requestEngineReload(const std::string &path);
+        void promptLoadEngine();
+        const std::string &getScriptPath() const { return m_scriptPath; }
+        void quit() { m_running = false; }
         void drawGenerated(
                 const GeometryGenerator::GeometryIndices &indices,
                 int layer = 0);
@@ -87,9 +96,13 @@ class EngineSimApplication {
         Simulator *getSimulator() { return m_simulator; }
         InfoCluster *getInfoCluster() { return m_infoCluster; }
         ApplicationSettings* getAppSettings() { return &m_applicationSettings; }
+        ViewManager *getViewManager() { return &m_viewManager; }
+        void toggleConsole() { m_consoleOpen = !m_consoleOpen; if (m_consoleOpen) m_controlsOpen = false; }
+        void toggleControls() { m_controlsOpen = !m_controlsOpen; if (m_controlsOpen) m_consoleOpen = false; }
+        const std::vector<std::string> &getConsoleLog() const { return m_consoleLog; }
 
     protected:
-        void loadScript();
+        void loadScript(const std::string &path = "../assets/main.mr");
         void processEngineInput();
         void renderScene();
 
@@ -147,9 +160,21 @@ class EngineSimApplication {
         LoadSimulationCluster *m_loadSimulationCluster;
         MixerCluster *m_mixerCluster;
         InfoCluster *m_infoCluster;
+        UiToolbar *m_toolbar;
+        UiConsole *m_console;
+        UiControls *m_controls;
+        UiTabBar *m_tabBar;
         SimulationObject::ViewParameters m_viewParameters;
 
         bool m_paused;
+
+        std::string m_scriptPath = "../assets/main.mr";
+        std::string m_pendingScriptPath;
+        bool m_reloadRequested = false;
+        bool m_running = true;
+        bool m_consoleOpen = false;
+        bool m_controlsOpen = false;
+        std::vector<std::string> m_consoleLog;
 
     protected:
         void startRecording();
@@ -182,7 +207,7 @@ class EngineSimApplication {
         ysAudioSource *m_audioSource;
 
         int m_oscillatorSampleOffset;
-        int m_screen;
+        ViewManager m_viewManager;
 
 #ifdef ATG_ENGINE_SIM_VIDEO_CAPTURE
         atg_dtv::Encoder m_encoder;

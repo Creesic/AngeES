@@ -29,6 +29,11 @@ namespace es_script {
     protected:
         virtual void registerInputs() {
             addInput("max_clutch_torque", &m_parameters.MaxClutchTorque);
+            addInput("simulate_flex", &m_parameters.SimulateFlex);
+            addInput("clutch_stiffness", &m_parameters.ClutchStiffness);
+            addInput("clutch_damping", &m_parameters.ClutchDamping);
+            addInput("max_clutch_flex", &m_parameters.MaxClutchFlex);
+            addInput("limit_clutch_flex", &m_parameters.LimitClutchFlex);
 
             ObjectReferenceNode<TransmissionNode>::registerInputs();
         }

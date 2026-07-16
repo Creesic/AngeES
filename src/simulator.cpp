@@ -125,8 +125,15 @@ bool Simulator::simulateStep() {
         shaft->m_body.theta = outputShaft->m_body.theta;
     }
 
-    const int index =
+    // Clamp the sample index into range. getCycleAngle() can round up to exactly
+    // 4*pi (-> index == DynoTorqueSamples), and a diverged/NaN angle converts to
+    // an out-of-range int; either would drive the circular-fill loop below out
+    // of bounds and potentially spin forever.
+    int index =
         static_cast<int>(std::floor(DynoTorqueSamples * outputShaft->getCycleAngle() / (4 * constants::pi)));
+    if (index < 0 || index >= DynoTorqueSamples) {
+        index = (index < 0) ? 0 : (DynoTorqueSamples - 1);
+    }
     const int step = m_engine->isSpinningCw() ? 1 : -1;
     m_dynoTorqueSamples[index] = m_dyno.getTorque();
 

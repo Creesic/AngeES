@@ -7,6 +7,7 @@
 #include "piranha.h"
 
 #include <vector>
+#include <string>
 
 namespace es_script {
 
@@ -36,13 +37,18 @@ namespace es_script {
         Output execute();
         void destroy();
 
+        // Formatted compile errors from the most recent compile() call (empty on success).
+        const std::vector<std::string> &getErrors() const { return m_errors; }
+
     private:
         void printError(const piranha::CompilationError *err, std::ofstream &file) const;
+        std::string formatError(const piranha::CompilationError *err) const;
 
     private:
         LanguageRules m_rules;
         piranha::Compiler *m_compiler;
         piranha::NodeProgram m_program;
+        std::vector<std::string> m_errors;
     };
 
 } /* namespace es_script */

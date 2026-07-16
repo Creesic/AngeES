@@ -1,5 +1,7 @@
 #include "../include/compiler.h"
 
+#include <sstream>
+
 es_script::Compiler::Output *es_script::Compiler::s_output = nullptr;
 
 es_script::Compiler::Compiler() {
@@ -31,11 +33,13 @@ void es_script::Compiler::initialize() {
 
 bool es_script::Compiler::compile(const piranha::IrPath &path) {
     bool successful = false;
+    m_errors.clear();
 
     std::ofstream file("error_log.log", std::ios::out);
     piranha::IrCompilationUnit *unit = m_compiler->compile(path);
     if (unit == nullptr) {
         file << "Can't find file: " << path.toString() << "\n";
+        m_errors.push_back("Can't find file: " + path.toString());
     }
     else {
         const piranha::ErrorList *errors = m_compiler->getErrorList();
@@ -48,7 +52,9 @@ bool es_script::Compiler::compile(const piranha::IrPath &path) {
         }
         else {
             for (int i = 0; i < errors->getErrorCount(); ++i) {
-                printError(errors->getCompilationError(i), file);
+                const piranha::CompilationError *err = errors->getCompilationError(i);
+                printError(err, file);
+                m_errors.push_back(formatError(err));
             }
         }
     }
@@ -56,6 +62,17 @@ bool es_script::Compiler::compile(const piranha::IrPath &path) {
     file.close();
 
     return successful;
+}
+
+std::string es_script::Compiler::formatError(const piranha::CompilationError *err) const {
+    const piranha::ErrorCode_struct &errorCode = err->getErrorCode();
+
+    std::stringstream ss;
+    ss << err->getCompilationUnit()->getPath().getStem()
+        << "(" << err->getErrorLocation()->lineStart << "): error "
+        << errorCode.stage << errorCode.code << ": " << errorCode.info;
+
+    return ss.str();
 }
 
 es_script::Compiler::Output es_script::Compiler::execute() {

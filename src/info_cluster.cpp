@@ -29,7 +29,7 @@ void InfoCluster::update(float dt) {
 void InfoCluster::render() {
     Grid grid;
     grid.h_cells = 6;
-    grid.v_cells = 4;
+    grid.v_cells = 5;
 
     const Bounds logoBounds = grid.get(m_bounds, 0, 0, 1, 2);
     drawFrame(logoBounds, 1.0f, m_app->getForegroundColor(), m_app->getBackgroundColor());
@@ -65,7 +65,7 @@ void InfoCluster::render() {
         Bounds::tl,
         Bounds::tl);
 
-    const Bounds engineInfoBounds = grid.get(m_bounds, 0, 2, 6, 1);
+    const Bounds engineInfoBounds = grid.get(m_bounds, 0, 3, 6, 1);
     drawFrame(engineInfoBounds, 1.0f, m_app->getForegroundColor(), m_app->getBackgroundColor());
 
     drawAlignedText(
@@ -99,7 +99,7 @@ void InfoCluster::render() {
         Bounds::rm,
         Bounds::rm);
 
-    const Bounds infoMessagesBounds = grid.get(m_bounds, 0, 3, 6, 1);
+    const Bounds infoMessagesBounds = grid.get(m_bounds, 0, 4, 6, 1);
     drawFrame(infoMessagesBounds, 1.0f, m_app->getForegroundColor(), m_app->getBackgroundColor());
 
     drawAlignedText(

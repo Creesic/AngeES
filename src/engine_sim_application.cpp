@@ -13,6 +13,7 @@
 #include "../include/exhaust_system.h"
 #include "../include/feedback_comb_filter.h"
 #include "../include/utilities.h"
+#include "../include/platform_file_dialog.h"
 
 #include "../scripting/include/compiler.h"
 
@@ -93,7 +94,6 @@ EngineSimApplication::EngineSimApplication() {
     m_gameWindowHeight = 256;
     m_screenWidth = 256;
     m_screenHeight = 256;
-    m_screen = 0;
     m_viewParameters.Layer0 = 0;
     m_viewParameters.Layer1 = 0;
 
@@ -189,6 +189,12 @@ void EngineSimApplication::initialize() {
     m_textRenderer.SetRenderer(m_engine.GetUiRenderer());
     m_textRenderer.SetFont(m_engine.GetConsole()->GetFont());
 
+    if (m_viewManager.getViewCount() == 0) {
+        m_viewManager.addView("Dashboard", "", 0);
+        m_viewManager.addView("Engine", "", 0);
+        m_viewManager.addView("Split", "", 0);
+    }
+
     loadScript();
 
     m_audioBuffer.initialize(44100, 44100);
@@ -244,7 +250,7 @@ void EngineSimApplication::process(float frame_dt) {
         speed = 1 / 1000.0;
     }
 
-    if (m_engine.IsKeyDown(ysKey::Code::F1)) {
+    if (m_engine.IsKeyDown(ysKey::Code::F4)) {
         m_displayAngle += frame_dt * 1.0f;
     }
     else if (m_engine.IsKeyDown(ysKey::Code::F2)) {
@@ -370,25 +376,38 @@ float EngineSimApplication::unitsToPixels(float units) const {
 }
 
 void EngineSimApplication::run() {
-    while (true) {
+    while (m_running) {
         m_engine.StartFrame();
 
         if (!m_engine.IsOpen()) break;
-        if (m_engine.ProcessKeyDown(ysKey::Code::Escape)) {
-            break;
-        }
 
-        if (m_engine.ProcessKeyDown(ysKey::Code::Return)) {
+        if (m_reloadRequested) {
+            m_reloadRequested = false;
             m_audioSource->SetMode(ysAudioSource::Mode::Stop);
-            loadScript();
+            loadScript(m_pendingScriptPath);
             if (m_simulator->getEngine() != nullptr) {
                 m_audioSource->SetMode(ysAudioSource::Mode::Loop);
             }
         }
 
+        if (m_engine.ProcessKeyDown(ysKey::Code::Escape)) {
+            break;
+        }
+
+        if (m_engine.ProcessKeyDown(ysKey::Code::Return)) {
+            requestEngineReload(m_scriptPath);
+        }
+
         if (m_engine.ProcessKeyDown(ysKey::Code::Tab)) {
-            m_screen++;
-            if (m_screen > 2) m_screen = 0;
+            m_viewManager.cycleNext();
+        }
+
+        if (m_engine.ProcessKeyDown(ysKey::Code::F5)) {
+            toggleConsole();
+        }
+
+        if (m_engine.ProcessKeyDown(ysKey::Code::F1)) {
+            toggleControls();
         }
 
         if (m_engine.ProcessKeyDown(ysKey::Code::F)) {
@@ -490,14 +509,15 @@ void EngineSimApplication::loadEngine(
     m_vehicle = vehicle;
     m_transmission = transmission;
 
-    m_simulator = engine->createSimulator(vehicle, transmission);
-
     if (engine == nullptr || vehicle == nullptr || transmission == nullptr) {
         m_iceEngine = nullptr;
+        m_simulator = nullptr;
         m_viewParameters.Layer1 = 0;
 
         return;
     }
+
+    m_simulator = engine->createSimulator(vehicle, transmission);
 
     createObjects(engine);
 
@@ -640,31 +660,63 @@ const SimulationObject::ViewParameters &
     return m_viewParameters;
 }
 
-void EngineSimApplication::loadScript() {
+void EngineSimApplication::loadScript(const std::string &path) {
     Engine *engine = nullptr;
     Vehicle *vehicle = nullptr;
     Transmission *transmission = nullptr;
 
+    // Stop the currently-loaded engine's audio rendering thread before building
+    // the next engine. Script execution and engine-object allocation must not
+    // run concurrently with the render thread -- otherwise the two race on the
+    // heap and the app intermittently freezes when swapping engines. The old
+    // simulation is fully torn down later in loadEngine(); if this load fails
+    // (bad file), we restart the thread below to keep the current engine alive.
+    if (m_simulator != nullptr) {
+        m_simulator->endAudioRenderingThread();
+    }
+
 #ifdef ATG_ENGINE_SIM_PIRANHA_ENABLED
     es_script::Compiler compiler;
     compiler.initialize();
-    const bool compiled = compiler.compile("../assets/main.mr");
+    const bool compiled = compiler.compile(path.c_str());
+    m_consoleLog = compiler.getErrors();
     if (compiled) {
         const es_script::Compiler::Output output = compiler.execute();
-        configure(output.applicationSettings);
 
         engine = output.engine;
         vehicle = output.vehicle;
         transmission = output.transmission;
-    }
-    else {
-        engine = nullptr;
-        vehicle = nullptr;
-        transmission = nullptr;
+
+        if (engine != nullptr) {
+            configure(output.applicationSettings);
+        }
     }
 
     compiler.destroy();
 #endif /* ATG_ENGINE_SIM_PIRANHA_ENABLED */
+
+    if (m_consoleLog.empty()) {
+        m_consoleLog.push_back(path + ": compiled successfully.");
+    }
+
+    // If the script produced no engine (a raw engine definition with no
+    // main/set_engine, or a compile error), don't tear down the currently
+    // loaded engine -- report it and keep the app running.
+    if (engine == nullptr) {
+        // Restart the audio thread we stopped above so the kept engine still
+        // makes sound.
+        if (m_simulator != nullptr) {
+            m_simulator->startAudioRenderingThread();
+        }
+
+        if (m_infoCluster != nullptr) {
+            m_infoCluster->setLogMessage("Could not load an engine from that file.");
+        }
+
+        return;
+    }
+
+    m_scriptPath = path;
 
     if (vehicle == nullptr) {
         Vehicle::Parameters vehParams;
@@ -690,6 +742,30 @@ void EngineSimApplication::loadScript() {
 
     loadEngine(engine, vehicle, transmission);
     refreshUserInterface();
+}
+
+void EngineSimApplication::requestEngineReload(const std::string &path) {
+    m_pendingScriptPath = path;
+    m_reloadRequested = true;
+}
+
+void EngineSimApplication::promptLoadEngine() {
+    // Mute playback while the modal file dialog blocks the main loop: otherwise
+    // the OS audio device keeps looping the last second still buffered in
+    // m_outputAudioBuffer for as long as the dialog is open.
+    m_audioSource->SetMode(ysAudioSource::Mode::Stop);
+
+    const std::string path = PlatformFileDialog::openFile(
+        "Load Engine", "Engine scripts (*.mr)", "*.mr");
+
+    if (!path.empty()) {
+        // The deferred reload re-enables Loop once the new engine is loaded.
+        requestEngineReload(path);
+    }
+    else if (m_simulator != nullptr && m_simulator->getEngine() != nullptr) {
+        // Cancelled: resume playback of the current engine.
+        m_audioSource->SetMode(ysAudioSource::Mode::Loop);
+    }
 }
 
 void EngineSimApplication::processEngineInput() {
@@ -966,8 +1042,25 @@ void EngineSimApplication::renderScene() {
 
     m_shaders.CalculateUiCamera(screenWidth, screenHeight);
 
-    if (m_screen == 0) {
-        Bounds windowBounds((float)screenWidth, (float)screenHeight, { 0, (float)screenHeight });
+    // Console: a compile-error log panel (matching 1.14a's ErrorLogDisplay),
+    // toggled by F5 / the Console button, overlaid centered on the current view.
+    m_console->m_bounds = Bounds(
+        (float)screenWidth * 0.6f, (float)screenHeight * 0.7f,
+        { (float)screenWidth * 0.5f, (float)screenHeight * 0.5f },
+        Bounds::center);
+    m_console->setVisible(m_consoleOpen);
+
+    // Controls: a help overlay (F1 / Controls button) listing all keybindings.
+    m_controls->m_bounds = Bounds(
+        (float)screenWidth * 0.7f, (float)screenHeight * 0.85f,
+        { (float)screenWidth * 0.5f, (float)screenHeight * 0.5f },
+        Bounds::center);
+    m_controls->setVisible(m_controlsOpen);
+
+    Bounds windowBounds((float)screenWidth, (float)screenHeight, { 0, (float)screenHeight });
+
+    if (m_viewManager.getCurrentIndex() == 0) {
+        // Dashboard: full layout with the info panel + toolbar.
         Grid grid;
         grid.v_cells = 2;
         grid.h_cells = 3;
@@ -998,9 +1091,30 @@ void EngineSimApplication::renderScene() {
         m_infoCluster->setVisible(true);
 
         m_oscCluster->activate();
+
+        // Toolbar: compact 4-button row in the info panel's reserved band (row 2
+        // of the info cluster's 6x5 grid), matching 1.14a.
+        Grid infoGrid;
+        infoGrid.h_cells = 6;
+        infoGrid.v_cells = 5;
+        m_toolbar->m_bounds = infoGrid.get(m_infoCluster->m_bounds, 0, 2, 6, 1).inset(3.0f);
+        m_toolbar->setVisible(true);
+
+        // Single "Console [F5]" button in the engine-visualization header (top-right).
+        m_toolbar->getConsoleButton()->m_bounds =
+            Bounds(180.0f, 28.0f,
+                { m_engineView->m_bounds.right() - 15.0f, m_engineView->m_bounds.top() - 45.0f },
+                Bounds::tr);
+        m_toolbar->getConsoleButton()->setVisible(true);
+
+        m_toolbar->getControlsButton()->m_bounds =
+            Bounds(180.0f, 28.0f,
+                { m_engineView->m_bounds.right() - 205.0f, m_engineView->m_bounds.top() - 45.0f },
+                Bounds::tr);
+        m_toolbar->getControlsButton()->setVisible(true);
     }
-    else if (m_screen == 1) {
-        Bounds windowBounds((float)screenWidth, (float)screenHeight, { 0, (float)screenHeight });
+    else if (m_viewManager.getCurrentIndex() == 1) {
+        // Engine: fullscreen engine view only.
         m_engineView->setDrawFrame(false);
         m_engineView->setBounds(windowBounds);
         m_engineView->setLocalPosition({ 0, 0 });
@@ -1013,9 +1127,11 @@ void EngineSimApplication::renderScene() {
         m_loadSimulationCluster->setVisible(false);
         m_mixerCluster->setVisible(false);
         m_infoCluster->setVisible(false);
+
+        m_toolbar->setVisible(false);
     }
-    else if (m_screen == 2) {
-        Bounds windowBounds((float)screenWidth, (float)screenHeight, { 0, (float)screenHeight });
+    else {
+        // Split: engine view plus the right gauge cluster.
         Grid grid;
         grid.v_cells = 1;
         grid.h_cells = 3;
@@ -1033,7 +1149,27 @@ void EngineSimApplication::renderScene() {
         m_loadSimulationCluster->setVisible(false);
         m_mixerCluster->setVisible(false);
         m_infoCluster->setVisible(false);
+
+        m_toolbar->setVisible(false);
     }
+
+    // Console mode: text is composited in a single global pass on top of all
+    // geometry, so an overlay can't cover the clusters' text -- hide the sim
+    // clusters and the toolbar entirely while the console is open (the view
+    // blocks above still ran, so m_engineView->m_bounds stays valid for the
+    // camera below). Bring the console to the front.
+    if (m_consoleOpen || m_controlsOpen) {
+        m_engineView->setVisible(false);
+        m_rightGaugeCluster->setVisible(false);
+        m_oscCluster->setVisible(false);
+        m_performanceCluster->setVisible(false);
+        m_loadSimulationCluster->setVisible(false);
+        m_mixerCluster->setVisible(false);
+        m_infoCluster->setVisible(false);
+        m_toolbar->setVisible(false);
+    }
+    if (m_consoleOpen) m_console->activate();
+    if (m_controlsOpen) m_controls->activate();
 
     const float cameraAspectRatio =
         m_engineView->m_bounds.width() / m_engineView->m_bounds.height();
@@ -1085,6 +1221,9 @@ void EngineSimApplication::refreshUserInterface() {
     m_loadSimulationCluster = m_uiManager.getRoot()->addElement<LoadSimulationCluster>();
     m_mixerCluster = m_uiManager.getRoot()->addElement<MixerCluster>();
     m_infoCluster = m_uiManager.getRoot()->addElement<InfoCluster>();
+    m_toolbar = m_uiManager.getRoot()->addElement<UiToolbar>();
+    m_console = m_uiManager.getRoot()->addElement<UiConsole>();
+    m_controls = m_uiManager.getRoot()->addElement<UiControls>();
 
     m_infoCluster->setEngine(m_iceEngine);
     m_rightGaugeCluster->m_simulator = m_simulator;

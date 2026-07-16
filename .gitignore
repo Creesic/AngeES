@@ -13,3 +13,16 @@ compile_commands.json
 
 # macOS build directory
 build-macos/
+
+# Test-run artifacts (written to the repo root when running the test suite)
+*.log
+/gas_system_test_output.csv
+/intake_stroke.csv
+
+# OpenWolf runtime state (per-machine session state; not version-controlled)
+.wolf/cron-state.json
+.wolf/token-ledger.json
+.wolf/suggestions.json
+.wolf/designqc-report.json
+.wolf/hooks/_session.json
+.wolf/designqc-captures/

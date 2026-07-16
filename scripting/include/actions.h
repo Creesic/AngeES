@@ -318,6 +318,56 @@ namespace es_script {
         double m_flowInput = 0.0;
     };
 
+    class k_32inH2ONode : public Node {
+        class k_32inH2ONodeOutput : public piranha::NodeOutput {
+        public:
+            k_32inH2ONodeOutput() : NodeOutput(&piranha::FundamentalType::FloatType) {
+                m_input = 0.0;
+            }
+
+            virtual ~k_32inH2ONodeOutput() {
+                /* void */
+            }
+
+            virtual void fullCompute(void *target) const {
+                *reinterpret_cast<double *>(target) = GasSystem::k_32inH2O(m_input);
+            }
+
+            double getInput() const { return m_input; }
+            void setInput(double data) { m_input = data; }
+
+        protected:
+            double m_input;
+        };
+
+    public:
+        k_32inH2ONode() { /* void */ }
+        virtual ~k_32inH2ONode() { /* void */ }
+
+    protected:
+        virtual void registerInputs() {
+            addInput("flow", &m_flowInput);
+
+            Node::registerInputs();
+        }
+
+        virtual void registerOutputs() {
+            registerOutput(&m_output, "__out");
+
+            setPrimaryOutput("__out");
+        }
+
+        virtual void _evaluate() {
+            readAllInputs();
+
+            m_output.setInput(m_flowInput);
+        }
+
+    protected:
+        k_32inH2ONodeOutput m_output;
+        double m_flowInput = 0.0;
+    };
+
     class k_CarbNode : public Node {
         class k_CarbNodeOutput : public piranha::NodeOutput {
         public:

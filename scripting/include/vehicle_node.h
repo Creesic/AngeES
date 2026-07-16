@@ -25,6 +25,12 @@ namespace es_script {
             addInput("diff_ratio", &m_parameters.diffRatio);
             addInput("tire_radius", &m_parameters.tireRadius);
             addInput("rolling_resistance", &m_parameters.rollingResistance);
+            addInput("simulate_flex", &m_parameters.simulateFlex);
+            addInput("stiffness", &m_parameters.stiffness);
+            addInput("damping", &m_parameters.damping);
+            addInput("max_flex", &m_parameters.maxFlex);
+            addInput("limit_flex", &m_parameters.limitFlex);
+            addInput("max_brake_force", &m_parameters.maxBrakeForce);
 
             ObjectReferenceNode<VehicleNode>::registerInputs();
         }
